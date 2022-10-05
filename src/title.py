@@ -5,22 +5,17 @@ import trafilatura
 from dotenv import load_dotenv
 
 from datasets import load_dataset
+
 ds = load_dataset("flax-community/german_common_crawl", "first")
 
 load_dotenv()
 
 
-def using_open_ai_davinci():
+def using_open_ai_davinci(text: str):
     openai.api_key = os.getenv("OPENAI_API_KEY")
-
-    test_url = ds["train"][0]["url"]
-    print(test_url)
-    downloaded = trafilatura.fetch_url(test_url)
-    fulltext = trafilatura.extract(downloaded, url=test_url, favor_precision=True)
-
     response = openai.Completion.create(
         model="text-davinci-002",
-        prompt=f"Fasse folgenden Text in einem kurzen deutschen Titel zusammen.\n\n{fulltext}",
+        prompt=f"Fasse folgenden Text in einem kurzen deutschen Titel zusammen.\n\n{text}",
         temperature=0.3,
         max_tokens=64,
         top_p=1,
@@ -31,6 +26,15 @@ def using_open_ai_davinci():
     return response.choices[0]["text"]
 
 
+def get_fulltext():
+    test_url = ds["train"][0]["url"]
+    print(test_url)
+    downloaded = trafilatura.fetch_url(test_url)
+    fulltext = trafilatura.extract(downloaded, url=test_url, favor_precision=True)
+    return fulltext
+
+
 if __name__ == '__main__':
-    title_from_davinci = using_open_ai_davinci()
+    fulltext = get_fulltext()
+    title_from_davinci = using_open_ai_davinci(fulltext)
     print(f"Title: {title_from_davinci}")
