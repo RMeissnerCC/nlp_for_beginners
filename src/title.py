@@ -11,7 +11,7 @@ ds = load_dataset("flax-community/german_common_crawl", "first")
 load_dotenv()
 
 
-def using_open_ai_davinci(text: str):
+def create_title(text: str) -> str:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.Completion.create(
         model="text-davinci-002",
@@ -23,7 +23,7 @@ def using_open_ai_davinci(text: str):
         presence_penalty=0
     )
 
-    return response.choices[0]["text"]
+    return response.choices[0]["text"].replace("\n", "")
 
 
 def get_fulltext():
@@ -36,5 +36,5 @@ def get_fulltext():
 
 if __name__ == '__main__':
     fulltext = get_fulltext()
-    title_from_davinci = using_open_ai_davinci(fulltext)
+    title_from_davinci = create_title(fulltext)
     print(f"Title: {title_from_davinci}")
