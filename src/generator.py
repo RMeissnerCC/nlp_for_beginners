@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import nlpcloud
@@ -8,12 +9,13 @@ import spacy as spacy
 from dotenv import load_dotenv
 from keybert import KeyBERT
 from nltk.corpus import stopwords
-from requests import HTTPError
 
 nltk.download('stopwords')
 STOPWORDS = set(stopwords.words("german")).union(set(stopwords.words("english")))
 
 load_dotenv()
+
+resource_directory = "../resources/own_post/"
 
 
 def create_title(text: str) -> str:
@@ -47,7 +49,7 @@ def create_keywords_mit_davinci(text: str) -> list[str]:
         presence_penalty=0
     )
 
-    return response.choices[0]["text"].replace("\n", "")
+    return response.choices[0]["text"].replace("\n", "").replace("-", " ")
 
 
 def create_keywords(fulltext: str) -> list[str]:
@@ -60,20 +62,17 @@ def create_keywords(fulltext: str) -> list[str]:
     return [keyword for keyword, weight in keywords]  # Remove the weights and only return keywords
 
 
-def generate_preview(filename: str, keywords: list[str]):
+def create_preview(filename: str, title: str):
     api_key = os.getenv("NLPCLOUD_API_KEY")
-    client = nlpcloud.Client("stable-diffusion", api_key, gpu=True, lang="en")
-    try:
-        response = client.image_generation(" ".join(keywords))
-    except HTTPError:
-        print("Currently no rate available. Skipping")
-        return
+    client = nlpcloud.Client("stable-diffusion", api_key, gpu=True, lang="de")
 
-    print(f"response {response}")
+    # If this yields 429 - wait a while
+    response = client.image_generation(f"Erstelle ein Bild aus diesem Titel: {title}")
 
+    # Download image
     response = requests.get(response["url"])
 
-    file_name = f"{filename}_preview.png"
+    file_name = f"{filename}_preview_{datetime.datetime.now().timestamp()}.png"
     # Save the image
     if response.status_code == 200:
         with open(file_name, "wb") as f:
@@ -82,27 +81,29 @@ def generate_preview(filename: str, keywords: list[str]):
 
 
 def determine_title_from_text(filename: str):
-    # read file and make text out of it
-    with open(f"../resources/{filename}") as file:
+    # read text from file and process it
+    with open(f"{resource_directory}{filename}") as file:
         fulltext = file.readlines()
 
     fulltext = " ".join(fulltext)
-    if len(fulltext) > 10000:  # current limitation of the OpenAI prompt, rather arbitrary
+    if len(fulltext) > 10500:  # current limitation of the OpenAI prompt, rather arbitrary
         return
 
     # create title
     title_from_davinci: str = create_title(fulltext)
     print(f"Title for '{filename}': {title_from_davinci}")
 
+    # create keywords
     keywords = create_keywords(fulltext)
     print(f"KeyBERT Keywords for '{filename}': {' '.join(keywords)}")
 
     keywords = create_keywords_mit_davinci(fulltext)
-    print(keywords, type(keywords))
     print(f"Davinci2 Keywords for '{filename}': {keywords}")
 
-    generate_preview(filename, keywords)
+    # create preview
+    create_preview(filename, title_from_davinci)
 
 
 if __name__ == '__main__':
-    list(map(determine_title_from_text, os.listdir("../resources")))  # list() is needed to execute the map
+    # cycle through all files in the resource's folder - for these I want to generate data automatically
+    list(map(determine_title_from_text, os.listdir(resource_directory)))  # list() is needed to execute the map

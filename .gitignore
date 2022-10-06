@@ -130,3 +130,4 @@ dmypy.json
 .idea/
 resources/
 data/
+src/*.png

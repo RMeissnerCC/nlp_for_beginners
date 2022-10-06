@@ -17,5 +17,5 @@ Für die deutschen Texte benutze ich ein deutsches Modell, dieses muss explizit 
 
 In `resources` eine Textdatei (e.g. .md) mit dem Volltext darin ablegen. Die Datei soll sonst nichts enthalten.
 
-Das Skript `src/blogpost_title.py` ausführen.
+Das Skript `src/generator.py` ausführen.
 
