@@ -15,13 +15,14 @@ STOPWORDS = set(stopwords.words("german")).union(set(stopwords.words("english"))
 
 load_dotenv()
 
-resource_directory = "../resources/own_post/"
+resource_directory = "../resources/"
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("NLPCLOUD_API_KEY")
 
 
 def create_title(text: str) -> str:
     # Create title with DaVinci2 Model on OpenAI
-
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.Completion.create(
         model="text-davinci-002",
         prompt=f"Fasse folgenden Text in einem kurzen deutschen Titel zusammen.\n\n{text}",
@@ -38,7 +39,6 @@ def create_title(text: str) -> str:
 def create_keywords_mit_davinci(text: str) -> list[str]:
     # Create keywords with DaVinci2 Model on OpenAI
 
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.Completion.create(
         model="text-davinci-002",
         prompt=f"Gib eine Liste der fünf wichtigsten Schlagwörtern zurück.\n\n{text}",
@@ -63,7 +63,6 @@ def create_keywords(fulltext: str) -> list[str]:
 
 
 def create_preview(filename: str, title: str):
-    api_key = os.getenv("NLPCLOUD_API_KEY")
     client = nlpcloud.Client("stable-diffusion", api_key, gpu=True, lang="de")
 
     # If this yields 429 - wait a while
