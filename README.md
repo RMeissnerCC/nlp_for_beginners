@@ -20,4 +20,3 @@ In `resources` eine Textdatei (e.g. .md) mit dem Volltext darin ablegen. Die Dat
 
 Das Skript `src/generator.py` ausführen. Das Skript durchsucht den Ordner `resources` und generiert für alle Dateien
 eine entsprechende Ausgabe.
-

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from keybert import KeyBERT
 from nltk.corpus import stopwords
 
-nltk.download('stopwords')
+nltk.download("stopwords")
 STOPWORDS = set(stopwords.words("german")).union(set(stopwords.words("english")))
 
 load_dotenv()
@@ -30,7 +30,7 @@ def create_title(text: str) -> str:
         max_tokens=64,
         top_p=1,
         frequency_penalty=1,
-        presence_penalty=0
+        presence_penalty=0,
     )
 
     return response.choices[0]["text"].replace("\n", "")
@@ -46,7 +46,7 @@ def create_keywords_mit_davinci(text: str) -> list[str]:
         max_tokens=64,
         top_p=1,
         frequency_penalty=1,
-        presence_penalty=0
+        presence_penalty=0,
     )
 
     return response.choices[0]["text"].replace("\n", "").replace("-", " ")
@@ -56,10 +56,16 @@ def create_keywords(fulltext: str) -> list[str]:
     nlp = spacy.load("de_dep_news_trf")
 
     keyword_model = KeyBERT(model=nlp)
-    keywords = keyword_model.extract_keywords(fulltext, highlight=False, keyphrase_ngram_range=(1, 1),
-                                              stop_words=list(STOPWORDS))
+    keywords = keyword_model.extract_keywords(
+        fulltext,
+        highlight=False,
+        keyphrase_ngram_range=(1, 1),
+        stop_words=list(STOPWORDS),
+    )
 
-    return [keyword for keyword, weight in keywords]  # Remove the weights and only return keywords
+    return [
+        keyword for keyword, weight in keywords
+    ]  # Remove the weights and only return keywords
 
 
 def create_preview(filename: str, title: str):
@@ -85,7 +91,9 @@ def determine_title_from_text(filename: str):
         fulltext = file.readlines()
 
     fulltext = " ".join(fulltext)
-    if len(fulltext) > 10500:  # current limitation of the OpenAI prompt, rather arbitrary
+    if (
+        len(fulltext) > 10500
+    ):  # current limitation of the OpenAI prompt, rather arbitrary
         return
 
     # create title
@@ -103,6 +111,8 @@ def determine_title_from_text(filename: str):
     create_preview(filename, title_from_davinci)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # cycle through all files in the resource's folder - for these I want to generate data automatically
-    list(map(determine_title_from_text, os.listdir(resource_directory)))  # list() is needed to execute the map
+    list(
+        map(determine_title_from_text, os.listdir(resource_directory))
+    )  # list() is needed to execute the map
